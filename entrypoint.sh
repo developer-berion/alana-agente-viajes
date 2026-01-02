@@ -6,7 +6,7 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000 &
 
 # Wait for API to be ready
 echo "Waiting for API..."
-until curl -s http://localhost:8000/health; do
+until curl -s http://127.0.0.1:8000/health; do
   sleep 1
 done
 
