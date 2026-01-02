@@ -64,7 +64,7 @@ else:
             ]
             
             self.model = GenerativeModel(
-                "gemini-1.5-pro-001", # Using 1.5 Pro as 2.5/Gemini-2.0 might be preview/restricted
+                model_id="gemini-1.5-flash",  # Using Flash for better availability and speed
                 tools=self.tools,
                 system_instruction="""ROLE
 You are a senior B2B Travel Advisor. You do not “chat with PDFs”; you use the promotions to build confident travel recommendations.
