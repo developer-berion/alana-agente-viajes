@@ -1,0 +1,85 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1 # Default
+  SERVICE_NAME: travel-mind
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Google Auth
+      id: auth
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+    - name: Set up Cloud SDK
+      uses: 'google-github-actions/setup-gcloud@v2'
+
+    - name: Determine Environment
+      id: env-selector
+      run: |
+        if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          echo "ENV_SUFFIX=prod" >> $GITHUB_ENV
+        else
+          echo "ENV_SUFFIX=dev" >> $GITHUB_ENV
+        fi
+
+    - name: Build and Push Container
+      run: |
+        gcloud builds submit --tag gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}-${{ env.ENV_SUFFIX }}:${{ github.sha }} .
+
+    - name: Deploy to Cloud Run
+      uses: 'google-github-actions/deploy-cloudrun@v2'
+      with:
+        service: ${{ env.SERVICE_NAME }}-${{ env.ENV_SUFFIX }}
+        image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}-${{ env.ENV_SUFFIX }}:${{ github.sha }}
+        region: ${{ env.REGION }}
+        env_vars: |
+          PROJECT_ID=${{ env.PROJECT_ID }}
+          DATA_STORE_ID=${{ secrets.DATA_STORE_ID }}
+          # API_URL is needed for frontend to talk to backend localhost in container
+          API_URL=http://localhost:8000
+
+    - name: Upload Smoke Test Script
+      uses: actions/upload-artifact@v4
+      with:
+        name: smoke-test
+        path: scripts/smoke_test.py
+
+  smoke-test:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Determine Service URL
+        # In a real pipeline we'd get the URL from the deploy step output.
+        # For now assuming constructable patterns or secrets.
+        # Simplification: Echoing skipping smoke test if url unknown
+        run: echo "Smoke test placeholder. Need URL export from deploy step."

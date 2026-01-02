@@ -1,0 +1,9 @@
+google-cloud-firestore
+uuid
+fastapi
+uvicorn
+pydantic
+google-cloud-aiplatform
+streamlit
+requests
+supervisor
