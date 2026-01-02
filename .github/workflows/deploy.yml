@@ -51,11 +51,11 @@ jobs:
         service: ${{ env.SERVICE_NAME }}-${{ env.ENV_SUFFIX }}
         image: gcr.io/${{ steps.auth.outputs.project_id }}/${{ env.SERVICE_NAME }}-${{ env.ENV_SUFFIX }}:${{ github.sha }}
         region: ${{ env.REGION }}
-        allow_unauthenticated: true
+        flags: '--allow-unauthenticated'
         env_vars: |
           PROJECT_ID=${{ steps.auth.outputs.project_id }}
           DATA_STORE_ID=projects/pdf-to-markdown-483017/locations/global/collections/default_collection/dataStores/dato_1767316786678
-          API_URL=http://127.0.0.1:8000
+          API_URL=http://localhost:8000
 
     - name: Upload Smoke Test Script
       uses: actions/upload-artifact@v4
