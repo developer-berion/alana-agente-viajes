@@ -42,8 +42,10 @@ jobs:
         fi
 
     - name: Build and Push Container
+      env:
+        PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       run: |
-        gcloud builds submit --tag gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}-${{ env.ENV_SUFFIX }}:${{ github.sha }} .
+        gcloud builds submit --suppress-logs --tag gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}-${{ env.ENV_SUFFIX }}:${{ github.sha }} .
 
     - name: Deploy to Cloud Run
       uses: 'google-github-actions/deploy-cloudrun@v2'
