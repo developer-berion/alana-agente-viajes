@@ -43,18 +43,17 @@ jobs:
 
     - name: Build and Push Container
       run: |
-        gcloud builds submit --suppress-logs --tag gcr.io/$CLOUDSDK_CORE_PROJECT/${{ env.SERVICE_NAME }}-${{ env.ENV_SUFFIX }}:${{ github.sha }} .
+        gcloud builds submit --suppress-logs --tag gcr.io/${{ steps.auth.outputs.project_id }}/${{ env.SERVICE_NAME }}-${{ env.ENV_SUFFIX }}:${{ github.sha }} .
 
     - name: Deploy to Cloud Run
       uses: 'google-github-actions/deploy-cloudrun@v2'
       with:
         service: ${{ env.SERVICE_NAME }}-${{ env.ENV_SUFFIX }}
-        image: gcr.io/$CLOUDSDK_CORE_PROJECT/${{ env.SERVICE_NAME }}-${{ env.ENV_SUFFIX }}:${{ github.sha }}
+        image: gcr.io/${{ steps.auth.outputs.project_id }}/${{ env.SERVICE_NAME }}-${{ env.ENV_SUFFIX }}:${{ github.sha }}
         region: ${{ env.REGION }}
         env_vars: |
-          PROJECT_ID=$CLOUDSDK_CORE_PROJECT
+          PROJECT_ID=${{ steps.auth.outputs.project_id }}
           DATA_STORE_ID=${{ secrets.DATA_STORE_ID }}
-          # API_URL is needed for frontend to talk to backend localhost in container
           API_URL=http://localhost:8000
 
     - name: Upload Smoke Test Script
